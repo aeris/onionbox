@@ -1,0 +1,28 @@
+# /etc/modules: kernel modules to load at boot time.
+#
+# This file contains the names of kernel modules that should be loaded
+# at boot time, one per line. Lines beginning with "#" are ignored.
+
+#For SATA Support
+sw_ahci_platform
+
+#Display and GPU
+lcd
+hdmi
+ump
+disp
+#mali
+#mali_drm
+8192cu
+gpio-sunxi
+sunxi_cedar_mod
+sunxi-gmac
+sunxi-emac
+leds-sunxi
+ledtrig-heartbeat
+sun4i-keyboard
+nand
+gt2005
+sun4i_csi0 i2c_addr=0x78 ccm="gt2005"
+pwm-sunxi
+g-ether

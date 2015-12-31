@@ -1,0 +1,3 @@
+/build/
+/overlay/root/.ssh/authorized_keys
+/overlay/etc/ssh/ssh_host_*

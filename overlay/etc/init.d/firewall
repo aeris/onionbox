@@ -1,0 +1,111 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          firewall
+# Required-Start:    $local_fs $network
+# Required-Stop:     $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+
+if [ `id -u` -ne 0 ]; then
+	echo "You are not root"
+	exit 1
+fi
+
+[ -z "${LOG_DROP}" ] && LOG_DROP=false
+
+IP4TABLES=/sbin/iptables
+IP6TABLES=/sbin/ip6tables
+IPv4=true
+IPv6=false
+
+fw4() {
+	${IPv4} && ${IP4TABLES} ${*}
+}
+
+fw6() {
+	${IPV6} && ${IP6TABLES} ${*}
+}
+
+fw() {
+	fw4 ${*}
+	fw6 ${*}
+}
+
+init() {
+	# Init FILTER table
+	fw -t filter -F
+	fw -t filter -X
+	fw -t filter -P INPUT   ${1}
+	fw -t filter -P OUTPUT  ${1}
+	fw -t filter -P FORWARD ${1}
+
+	# Init NAT table
+	fw4 -t nat -F
+	fw4 -t nat -X
+	fw4 -t nat -P PREROUTING  ACCEPT
+	fw4 -t nat -P INPUT       ACCEPT
+	fw4 -t nat -P OUTPUT      ACCEPT
+	fw4 -t nat -P POSTROUTING ACCEPT
+
+	# Init MANGLE table
+	fw -t mangle -F
+	fw -t mangle -X
+	fw -t mangle -P PREROUTING  ACCEPT
+	fw -t mangle -P INPUT       ACCEPT
+	fw -t mangle -P OUTPUT      ACCEPT
+	fw -t mangle -P POSTROUTING ACCEPT
+	fw -t mangle -P FORWARD     ACCEPT
+
+	# Init RAW table
+	fw -t raw -F
+	fw -t raw -X
+	fw -t raw -P PREROUTING  ACCEPT
+	fw -t raw -P OUTPUT      ACCEPT
+}
+
+start() {
+	init DROP
+	. /etc/firewall
+
+	# Log DROP
+	if ${LOG_DROP}; then
+		fw -A INPUT   -j LOG --log-prefix 'INPUT '
+		fw -A OUTPUT  -j LOG --log-prefix 'OUTPUT '
+		fw -A FORWARD -j LOG --log-prefix 'FORWARD '
+	fi
+}
+
+stop() {
+	init ACCEPT
+}
+
+case "${1}" in
+start)
+	start
+	. /etc/tor/ipset
+	;;
+stop)
+	stop
+	;;
+restart)
+	stop
+	start
+	. /etc/tor/ipset
+	;;
+fast-start)
+	start
+	;;
+fast-restart)
+	stop
+	start
+	;;
+reload-tor)
+	. /etc/tor/ipset
+	;;
+*)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+	;;
+esac
+exit 0

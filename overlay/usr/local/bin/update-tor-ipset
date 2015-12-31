@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+import argparse, math
+from stem import Flag
+from stem.descriptor import parse_file, DocumentHandler
+
+DEFAULT_INPUT='/var/lib/tor/cached-microdesc-consensus'
+DEFAULT_OUTPUT='/etc/tor/ipset'
+
+parser = argparse.ArgumentParser(description='Generate Tor node ipset set from Tor consensus')
+parser.add_argument('-i', '--input', help='Consensus input file (default: %s)' % DEFAULT_INPUT, default=DEFAULT_INPUT)
+parser.add_argument('-o', '--output', help='Ipset output file (default: %s)' % DEFAULT_OUTPUT, default=DEFAULT_OUTPUT)
+args = parser.parse_args()
+
+consensus_file = args.input
+print('Loading Tor consensus descriptors from %s' % (consensus_file))
+with open(consensus_file, 'rb') as consensus_file:
+	consensus = parse_file(consensus_file, descriptor_type='network-status-microdesc-consensus-3 1.0', validate=True)
+	entries = set()
+	for node in consensus:
+		flags = set(node.flags)
+		if node.or_port:
+			entry = (node.address, node.or_port)
+			print('Find OR node :\t\t %s:%d' % entry)
+			entries.add(entry)
+		if node.dir_port:
+			entry = (node.address, node.dir_port)
+			print('Find directory node :\t %s:%d' % entry)
+			entries.add(entry)
+	entries = sorted(entries)
+
+entries_file = args.output
+count = len(entries)
+print('Writing %s with %d entries' % (entries_file, count))
+with open(entries_file, 'w') as entries_file:
+	entries_file.write('ipset create tor hash:ip,port -exist\n')
+	entries_file.write('ipset create tor-new hash:ip,port\n')
+	percentage = i = 0
+	for entry in entries:
+		entries_file.write('ipset add tor-new %s,%d\n' % entry)
+		p = int(math.floor(float(i) / count * 100))
+		if p is not percentage:
+			percentage = p
+			entries_file.write('echo "Loading Tor IPSet... [%d%%]"\n' % (percentage))
+		i += 1
+	entries_file.write('ipset swap tor-new tor\n')
+	entries_file.write('ipset destroy tor-new\n')

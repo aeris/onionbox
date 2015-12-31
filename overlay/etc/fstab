@@ -1,0 +1,8 @@
+# /etc/fstab: static file system information.
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+/dev/root      /               ext4    noatime,errors=remount-ro 0 1
+tmpfs    /run/shm    tmpfs    defaults    0 0
+tmpfs    /tmp        tmpfs    defaults    0 0
+tmpfs    /var/tmp    tmpfs    defaults    0 0
+/dev/nanda   /media/nand auto    rw,user,noauto,exec   0   0

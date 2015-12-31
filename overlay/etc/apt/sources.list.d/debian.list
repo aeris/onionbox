@@ -1,0 +1,3 @@
+deb tor+http://http.debian.net/debian/ jessie main
+deb tor+http://http.debian.net/debian/ jessie-updates main
+deb tor+http://security.debian.org/ jessie/updates main
