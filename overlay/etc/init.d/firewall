@@ -62,6 +62,10 @@ init() {
 	fw -t raw -X
 	fw -t raw -P PREROUTING  ACCEPT
 	fw -t raw -P OUTPUT      ACCEPT
+
+	fw -A OUTPUT  -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+	fw -A INPUT   -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+	fw -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 }
 
 start() {
