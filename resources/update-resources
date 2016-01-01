@@ -1,0 +1,37 @@
+#!/bin/sh
+set -e
+
+TOR_BROWSER_VERSION=5.0.6
+TOR_BROWSER_DIR=https://www.torproject.org/dist/torbrowser/${TOR_BROWSER_VERSION}
+
+gpg2 --recv-key 0x2E1AC68ED40814E0
+for version in torbrowser-install-${TOR_BROWSER_VERSION}_en-US.exe TorBrowser-${TOR_BROWSER_VERSION}-osx64_en-US.dmg tor-browser-linux64-${TOR_BROWSER_VERSION}_en-US.tar.xz tor-browser-linux64-${TOR_BROWSER_VERSION}_en-US.tar.xz; do
+	if [ ! -f ${version} ]; then
+		wget -q --show-progress ${TOR_BROWSER_DIR}/${version} -O ${version}
+		wget -q --show-progress ${TOR_BROWSER_DIR}/${version}.asc -O ${version}.asc
+		gpg2 -v ${version}.asc
+	fi
+done
+
+TAILS_VERSION=1.8.1
+TAILS_DIR=https://tails.boum.org/torrents/files
+TAILS_FILE=tails-i386-${TAILS_VERSION}
+TAILS_TORRENT_FILE=${TAILS_FILE}.torrent
+TAILS_TORRENT=${TAILS_DIR}/${TAILS_TORRENT_FILE}
+
+gpg2 --recv-key 0xDBB802B258ACD84F
+if [ ! -f ${TAILS_FILE}.iso ]; then
+	wget -q --show-progress ${TAILS_TORRENT} -O ${TAILS_TORRENT_FILE}
+	wget -q --show-progress ${TAILS_TORRENT}.sig -O ${TAILS_TORRENT_FILE}.sig
+	gpg2 -v ${TAILS_TORRENT_FILE}.sig
+
+	aria2c --seed-time=0 --summary-interval=0 ${TAILS_TORRENT_FILE}
+
+	mv ${TAILS_FILE}/* . && rmdir ${TAILS_FILE}
+	gpg2 -v ${TAILS_FILE}.iso.sig
+fi
+
+GAN_DIR=https://guide.boum.org/tomes/
+GAN_VERSION=20140828
+[ -f guide-autodefense-numerique-1.pdf ] || wget -q --show-progress ${GAN_DIR}/1_hors_connexions/pdf/guide-tome1-a4-${GAN_VERSION}.pdf -O guide-autodefense-numerique-1.pdf
+[ -f guide-autodefense-numerique-2.pdf ] || wget -q --show-progress ${GAN_DIR}/2_en_ligne/pdf/guide-tome2-a4-${GAN_VERSION}.pdf -O guide-autodefense-numerique-2.pdf

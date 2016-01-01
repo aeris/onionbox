@@ -1,3 +1,8 @@
+/resources/guide-autodefense-numerique-*.pdf
+/resources/tails-i386-*
+/resources/torbrowser-install-*_en-US.exe*
+/resources/tor-browser-linux64-*_en-US.tar.xz*
+/resources/TorBrowser-*-osx64_en-US.dmg*
 /overlay/etc/ssh/ssh_host_*
 /overlay/etc/tor/ipset
 /overlay/root/.ssh/authorized_keys
