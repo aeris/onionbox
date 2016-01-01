@@ -6,7 +6,8 @@ update-locale
 echo exit 101 > /usr/sbin/policy-rc.d
 chmod +x /usr/sbin/policy-rc.d
 
-echo 'Acquire::http { Proxy "http://localhost:3142"; };' > /etc/apt/apt.conf.d/00proxy
+echo 'Acquire::http { Proxy "http://localhost:3142"; }' > /etc/apt/apt.conf.d/00proxy
+echo 'Dpkg::Options { "--force-confdef"; "--force-confold"; }' > /etc/apt/apt.conf.d/00dpkg
 rm -f /etc/apt/sources.list
 sed -i s/tor+// /etc/apt/sources.list.d/*.list
 
@@ -16,8 +17,8 @@ apt update
 apt dist-upgrade -y
 apt install -y tor tor-arm tor-geoipdb apt-transport-tor python python-stem
 
-rm -rf /var/cache/apt/archives/*
-rm -f /etc/apt/apt.conf.d/00proxy
+find /var/cache/apt/archives -type f -name "*.deb" -delete
+rm -f /etc/apt/apt.conf.d/{00proxy,00dpkg}
 
 rm -f /usr/sbin/policy-rc.d
 
