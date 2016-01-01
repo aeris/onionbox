@@ -121,7 +121,11 @@ overlay/etc/tor/ipset:
 	overlay/usr/local/bin/update-tor-ipset -i ~/.tor/cached-microdesc-consensus -o $@
 tor_ipset: overlay/etc/tor/ipset
 
-overlay: | build/rootfs/
+overlay/etc/apt/trusted.gpg.d/deb.torproject.org.gpg:
+	gpg2 --export --no-armor 0xEE8CBC9E886DDD89 > $@
+tor_keyring: overlay/etc/apt/trusted.gpg.d/deb.torproject.org.gpg
+
+overlay:
 	rsync -ahxP --chown=root:root --delete build/linux/out/lib/modules/ build/rootfs/lib/modules/
 	rsync -ahxP --chown=root:root --delete build/linux/out/lib/firmware/ build/rootfs/lib/firmware/
 	rsync -ahxP --usermap=1000:root --groupmap=1000:root overlay/ build/rootfs/
