@@ -1,3 +1,4 @@
-/build/
-/overlay/root/.ssh/authorized_keys
 /overlay/etc/ssh/ssh_host_*
+/overlay/etc/tor/ipset
+/overlay/root/.ssh/authorized_keys
+/build/
