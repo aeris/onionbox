@@ -1,0 +1,7 @@
+ClientOnly 1
+SocksPort 9050
+ControlPort 9051
+TransPort 9052
+DNSPort 9053
+HiddenServiceStatistics 0
+RunAsDaemon 0
