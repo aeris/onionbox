@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse, math
+from datetime import datetime
 from stem import Flag
 from stem.descriptor import parse_file, DocumentHandler
 
@@ -32,6 +33,7 @@ entries_file = args.output
 count = len(entries)
 print('Writing %s with %d entries' % (entries_file, count))
 with open(entries_file, 'w') as entries_file:
+	entries_file.write('# Generated at %s\n' % (datetime.now().replace(microsecond=0).isoformat()))
 	entries_file.write('ipset create tor hash:ip,port -exist\n')
 	entries_file.write('ipset create tor-new hash:ip,port\n')
 	percentage = i = 0
