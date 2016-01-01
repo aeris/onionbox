@@ -6,7 +6,6 @@ net-tools
 rsyslog
 logrotate
 anacron
-nullmailer
 locales
 vim
 less
@@ -14,6 +13,7 @@ kmod
 htop
 fake-hwclock
 rsync
+man-db
 
 ifupdown
 iproute

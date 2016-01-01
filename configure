@@ -9,11 +9,13 @@ chmod +x /usr/sbin/policy-rc.d
 echo 'Acquire::http { Proxy "http://localhost:3142"; };' > /etc/apt/apt.conf.d/00proxy
 rm -f /etc/apt/sources.list
 sed -i s/tor+// /etc/apt/sources.list.d/*.list
+
 apt update
 apt install deb.torproject.org-keyring -y --force-yes
 apt update
 apt dist-upgrade -y
-apt install tor tor-geoipdb apt-transport-tor python python-stem -y
+apt install -y tor tor-arm tor-geoipdb apt-transport-tor python python-stem
+
 rm -rf /var/cache/apt/archives/*
 rm -f /etc/apt/apt.conf.d/00proxy
 
