@@ -1,10 +1,13 @@
 export LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 LC_MESSAGES=POSIX DEBIAN_FRONTEND=noninteractive
-locale-gen en_US.UTF-8
+locale-gen
 update-locale
 apt-key update # Import deb.torproject.org.gpg
 
 # Prohibit services to start during install
-echo exit 101 > /usr/sbin/policy-rc.d
+cat > /usr/sbin/policy-rc.d <<EOF
+#!/bin/sh
+exit 101
+EOF
 chmod +x /usr/sbin/policy-rc.d
 
 echo 'Acquire::http { Proxy "http://localhost:3142"; }' > /etc/apt/apt.conf.d/00proxy
