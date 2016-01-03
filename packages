@@ -1,3 +1,4 @@
+# Base
 dialog
 udev
 apt-utils
@@ -13,20 +14,24 @@ kmod
 htop
 fake-hwclock
 rsync
-man-db
 libpam-systemd
 
+# Network
 ifupdown
 iproute
+## Firewall
 iptables
 ipset
-
+## DHCP
 isc-dhcp-client
 isc-dhcp-server
 
-#bind9
-apache2
-openssh-server
-
+# Wifi
 wireless-tools
 hostapd
+
+# Tor
+## Arm
+man-db
+# Services
+openssh-server

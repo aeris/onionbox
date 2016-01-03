@@ -1,0 +1,12 @@
+# Base
+//Python refuse to install with debootstrap
+//See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=769106#83
+python
+
+# Tor
+tor
+tor-arm
+tor-geoipdb
+apt-transport-tor
+python-stem
+deb.torproject.org-keyring

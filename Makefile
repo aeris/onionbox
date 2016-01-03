@@ -86,8 +86,8 @@ overlay: overlay/etc/tor/ipset overlay/etc/apt/trusted.gpg.d/deb.torproject.org.
 overlay_sync: | overlay
 	rsync -ahxP --usermap=1000:root --groupmap=1000:root overlay/ torbox.local:/
 
-build/rootfs/: configure packages resources/rsyslog.patch
-	$(eval PACKAGES := $(shell egrep -v '^(#|$$)' packages | tr "\n" ,))
+build/rootfs/: packages configure configure.packages resources/rsyslog.patch
+	$(eval PACKAGES := $(shell egrep -v '^(#|//|$$)' packages | tr "\n" ,))
 	rm -rf $@
 	qemu-debootstrap --arch=armhf --variant=minbase --include=$(PACKAGES) $(DEBIAN_RELEASE) $@ $(DEBIAN_REPOSITORY)
 	# Fix a bug with xconsole filling syslog
@@ -97,15 +97,17 @@ build/rootfs/: configure packages resources/rsyslog.patch
 	[ -x $@/usr/bin/qemu-arm-static ] || cp /usr/bin/qemu-arm-static $@/usr/bin/qemu-arm-static
 	$(MAKE) overlay
 	for i in proc dev sys; do mount -o bind /$$i $@/$$i; done
+	cp configure.packages $@/tmp/packages
 	chroot $@ /bin/bash < configure
+	rm -f $@/tmp/packages
 	for i in proc dev sys; do umount $@/$$i; done
 	$(MAKE) overlay modules
 	date -u '+%Y-%m-%d %H:%M:%S' > $@/etc/fake-hwclock.data
 	rm -f $@/usr/bin/qemu-arm-static
-build/rootfs/lib/modules/: linux
+build/rootfs/lib/modules/: linux | build/rootfs/
 	rsync -ahxP --chown=root:root --delete build/linux/out/lib/modules/ $@
 modules: | build/rootfs/lib/modules/
-build/rootfs/lib/firmware/: linux
+build/rootfs/lib/firmware/: linux | build/rootfs/
 	rsync -ahxP --chown=root:root --delete build/linux/out/lib/firmware/ $@
 firmwares: | build/rootfs/lib/firmware/
 rootfs: | build/rootfs/ modules overlay
