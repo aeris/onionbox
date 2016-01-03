@@ -2,6 +2,7 @@ DEBIAN_REPOSITORY := http://localhost:3142/http.debian.net/debian/
 DEBIAN_RELEASE := jessie
 GITHUB_OLIMEX := https://github.com/OLIMEX/OLINUXINO/raw/master/SOFTWARE/A20/A20-build-3.4.90
 GITHUB_SUNXI := https://github.com/linux-sunxi
+TOR_BROWSER_VERSION := tor-browser-38.5.0esr-5.0-2
 SDCARD_DEV := /dev/sdd
 MAKE_OPTIONS := -j8
 IMG_SIZE := 4G
@@ -32,9 +33,11 @@ resources/SPI.patch:
 resources/a20_olimex_defconfig:
 	wget -q --show-progress $(GITHUB_OLIMEX)/a20_olimex_defconfig -O $@
 	sed -i "s/.*CONFIG_FHANDLE.*/CONFIG_FHANDLE=y/" $@
+resources/tor-browser-user-agent:
+	curl -s "https://gitweb.torproject.org/tor-browser.git/plain/browser/app/profile/000-tor-browser.js?h=$(TOR_BROWSER_VERSION)" | grep general.useragent.override | awk -F\" '{print $$4}' | tr -d "\n" > $@
 
 resources: resources/u-boot/ resources/linux/ resources/script.bin resources/spi-sun7i.c \
-	resources/SPI.patch resources/a20_olimex_defconfig
+	resources/SPI.patch resources/a20_olimex_defconfig resource/tor-browser-user-agent
 
 dev:
 	echo "deb http://emdebian.org/tools/debian/ jessie main" > /etc/apt/sources.list.d/embedian.list
@@ -81,7 +84,13 @@ tor_ipset: overlay/etc/tor/ipset
 overlay/etc/apt/trusted.gpg.d/deb.torproject.org.gpg tor_keyring: | overlay/etc/apt/trusted.gpg.d/
 	gpg2 --export --export-options export-minimal --no-armor 0xEE8CBC9E886DDD89 > $@
 tor_keyring: overlay/etc/apt/trusted.gpg.d/deb.torproject.org.gpg
-overlay: overlay/etc/tor/ipset overlay/etc/apt/trusted.gpg.d/deb.torproject.org.gpg
+overlay/usr/local/bin/htpdate: | overlay/usr/local/bin/
+	wget -q --show-progress https://git-tails.immerda.ch/tails/plain/config/chroot_local-includes/usr/local/sbin/htpdate -O $@
+	chmod u+x $@
+overlay/etc/default/htpdate: resources/tor-browser-user-agent | overlay/etc/default/
+	wget -q --show-progress https://git-tails.immerda.ch/tails/plain/config/chroot_local-includes/etc/default/htpdate -O $@
+	sed -i 's#^HTTP_USER_AGENT=.*#HTTP_USER_AGENT="$(shell cat $<)"#' $@
+overlay: overlay/etc/tor/ipset overlay/etc/apt/trusted.gpg.d/deb.torproject.org.gpg overlay/usr/local/bin/htpdate overlay/etc/default/htpdate
 	rsync -ahxP --usermap=1000:root --groupmap=1000:root $@/* build/rootfs/
 overlay_sync: | overlay
 	rsync -ahxP --usermap=1000:root --groupmap=1000:root overlay/ torbox.local:/
@@ -178,7 +187,7 @@ chroot:
 	find build/rootfs/var/log -type f -delete
 
 clean:
-	rm -rf build/rootfs build/torbox.img build/torbox.img.xz overlay/etc/apt/trusted.gpg.d/deb.torproject.org.gpg
+	rm -rf build/rootfs build/torbox.img build/torbox.img.xz overlay/etc/apt/trusted.gpg.d/deb.torproject.org.gpg overlay/etc/default/htpdate overlay/usr/local/bin/htpdate resources/tor-browser-user-agent
 distclean:
 	$(MAKE) -C build/u-boot distclean
 	$(MAKE) -C build/linux distclean

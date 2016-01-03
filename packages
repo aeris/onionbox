@@ -15,6 +15,7 @@ htop
 fake-hwclock
 rsync
 libpam-systemd
+ca-certificates
 
 # Network
 ifupdown
