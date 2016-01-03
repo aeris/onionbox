@@ -14,7 +14,7 @@ export ARCH := arm
 
 sync:
 	rsync -ahxP --delete . torbox-dev.local:torbox/ --exclude-from .exclude
-desync: rsync
+desync: sync
 	rsync -ahxP --delete torbox-dev.local:torbox/ .
 
 resources/u-boot/:
