@@ -5,3 +5,4 @@ resources/a20_olimex_defconfig
 resources/script.bin
 resources/SPI.patch
 resources/spi-sun7i.c
+resources/tor-browser-user-agent

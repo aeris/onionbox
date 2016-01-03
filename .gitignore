@@ -5,6 +5,7 @@
 /resources/torbrowser-install-*_en-US.exe*
 /resources/tor-browser-linux64-*_en-US.tar.xz*
 /resources/TorBrowser-*-osx64_en-US.dmg*
+/resources/tor-browser-user-agent
 /overlay/etc/apt/trusted.gpg.d/deb.torproject.org.gpg
 /overlay/etc/ssh/ssh_host_*
 /overlay/etc/tor/ipset

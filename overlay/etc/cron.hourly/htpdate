@@ -1,0 +1,13 @@
+#!/bin/bash
+. /etc/default/htpdate
+/usr/local/bin/htpdate \
+	--debug \
+	--log_file "$LOG" \
+	--user_agent "$HTTP_USER_AGENT" \
+	--allowed_per_pool_failure_ratio 0.34 \
+	--done_file    "$HTP_DONE_FILE" \
+	--success_file "$HTP_SUCCESS_FILE" \
+	--pal_pool     "$HTP_POOL_PAL" \
+	--neutral_pool "$HTP_POOL_NEUTRAL" \
+	--foe_pool     "$HTP_POOL_FOE" \
+	--proxy        127.0.0.1:9050
