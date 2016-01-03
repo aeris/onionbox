@@ -1,0 +1,14 @@
+--- etc/rsyslog.conf	2016-01-02 23:48:28.964385999 +0000
++++ etc/rsyslog.conf	2016-01-02 23:48:42.166983998 +0000
+@@ -115,7 +115,7 @@
+ # NOTE: adjust the list below, or you'll go crazy if you have a reasonably
+ #      busy site..
+ #
+-daemon.*;mail.*;\
+-	news.err;\
+-	*.=debug;*.=info;\
+-	*.=notice;*.=warn	|/dev/xconsole
++#daemon.*;mail.*;\
++#	news.err;\
++#	*.=debug;*.=info;\
++#	*.=notice;*.=warn	|/dev/xconsole

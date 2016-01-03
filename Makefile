@@ -86,9 +86,12 @@ overlay: overlay/etc/tor/ipset overlay/etc/apt/trusted.gpg.d/deb.torproject.org.
 overlay_sync: | overlay
 	rsync -ahxP --usermap=1000:root --groupmap=1000:root overlay/ torbox.local:/
 
-build/rootfs/: configure packages
+build/rootfs/: configure packages resources/rsyslog.patch
 	$(eval PACKAGES := $(shell egrep -v '^(#|$$)' packages | tr "\n" ,))
+	rm -rf $@
 	qemu-debootstrap --arch=armhf --variant=minbase --include=$(PACKAGES) $(DEBIAN_RELEASE) $@ $(DEBIAN_REPOSITORY)
+	# Fix a bug with xconsole filling syslog
+	patch -p0 -d $@ < resources/rsyslog.patch
 	rm -f $@/etc/ssh/ssh_host_*_key*
 
 	[ -x $@/usr/bin/qemu-arm-static ] || cp /usr/bin/qemu-arm-static $@/usr/bin/qemu-arm-static
