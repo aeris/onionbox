@@ -8,5 +8,8 @@ tor
 tor-arm
 tor-geoipdb
 apt-transport-tor
-python-stem
 deb.torproject.org-keyring
+## IPSet
+python-stem
+## Set date
+python-pyinotify

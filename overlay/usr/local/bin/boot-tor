@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+import grp, os, os.path, pwd, pyinotify, re, subprocess, time, threading
+from datetime import datetime
+TOR_LOG = '/var/log/tor/log'
+TOR_CONSENSUS = '/var/lib/tor/cached-microdesc-consensus'
+HTPDATE = '/etc/cron.hourly/htpdate'
+IPSET = '/etc/cron.daily/update-tor-ipset'
+
+def set_date(date):
+	print('Setting date to %s' % (str(date)))
+	subprocess.check_call(['date', '-s', date.isoformat()])
+
+def set_date_from_consensus(file):
+	if os.path.isfile(file):
+		FRESH_UNTIL = re.compile('fresh-until (.*)')
+		with open(file, 'rb') as tor_consensus:
+			for lines in list(tor_consensus):
+				match = FRESH_UNTIL.match(lines)
+				if match:
+					date = datetime.strptime(match.group(1), '%Y-%m-%d %H:%M:%S')
+					print('Found date from consensus : %s' % (str(date)))
+					set_date(date)
+					break
+
+class TorLog(pyinotify.ProcessEvent):
+	MASK = pyinotify.IN_MODIFY
+
+	def __init__(self, wm, file):
+		subprocess.check_call(['service', 'tor', 'stop'])
+		with open(file, 'w') as fd:
+			pass
+		uid = pwd.getpwnam('debian-tor').pw_uid
+		gid = grp.getgrnam('debian-tor').gr_gid
+		os.chown(file, uid, gid)
+		subprocess.check_call(['service', 'tor', 'start'])
+
+		self.__lock = threading.Semaphore(0)
+		self.__file = file
+		self.__fd = open(file, 'rb')
+		self.__wm = wm
+		self.__wd = self.__wm.add_watch(file, TorLog.MASK, proc_fun = self)
+		self.__bootstrap = False
+
+	def __enter__(self):
+		return self
+
+	def __exit__(self, _1, _2, _3):
+		self.__close()
+
+	def wait(self):
+		self.__lock.acquire()
+
+	CERTIFICATE_LIFETIME = re.compile('\\(certificate lifetime runs from (.*) through (.*)\\. Your time is .*\\.\\)')
+	BOOTSTRAP_OK = re.compile('Bootstrapped 100%: Done')
+	def __process(self):
+		for line in self.__fd.readlines():
+			match = TorLog.CERTIFICATE_LIFETIME.search(line)
+			if match:
+				date = datetime.strptime(match.group(1), '%b %d %H:%M:%S %Y %Z')
+				print('Found certificate date %s' % (str(date)))
+				set_date(date)
+			if not self.__bootstrap:
+				match = TorLog.BOOTSTRAP_OK.search(line)
+				if match:
+					self.__bootstrap = True
+					print('Bootstrap OK')
+					self.__done()
+
+	def __close(self):
+		self.__fd.close()
+		self.__fd = None
+
+	def __done(self):
+		if self.__wd:
+			self.__wm.rm_watch(self.__wd.values())
+			self.__wd = None
+		self.__lock.release()
+
+	def process_IN_MODIFY(self, event):
+		self.__process()
+
+class TorConsensus:
+	MASK = pyinotify.IN_MOVED_TO
+
+	class ProcessEvent(pyinotify.ProcessEvent):
+		def process_IN_MOVED_TO(self, event):
+			set_date_from_consensus(event.pathname)
+
+	def __init__(self, wm, file):
+		self.__wm = wm
+		self.__wd = self.__wm.watch_transient_file(file, TorConsensus.MASK, TorConsensus.ProcessEvent)
+
+set_date_from_consensus(TOR_CONSENSUS)
+
+watch_manager = pyinotify.WatchManager()
+notifier = pyinotify.ThreadedNotifier(watch_manager)
+notifier.start()
+try:
+	with TorLog(watch_manager, TOR_LOG) as tor_log:
+		tor_consensus = TorConsensus(watch_manager, TOR_CONSENSUS)
+		tor_log.wait()
+finally:
+	notifier.stop()
+
+subprocess.check_call([IPSET])
+subprocess.check_call([HTPDATE])
