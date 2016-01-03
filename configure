@@ -17,7 +17,7 @@ sed -i s/tor+// /etc/apt/sources.list.d/*.list
 
 apt update
 apt dist-upgrade -y
-apt install -y tor tor-arm tor-geoipdb apt-transport-tor python python-stem deb.torproject.org-keyring < /dev/null
+egrep -v '^(#|//|$$)' /tmp/packages | xargs apt install -y
 
 find /var/cache/apt/archives -type f -name "*.deb" -delete
 rm -f /etc/apt/apt.conf.d/{00proxy,00dpkg}
