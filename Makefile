@@ -20,8 +20,6 @@ sync:
 desync: sync
 	rsync -ahxP --delete torbox-dev.local:torbox/ .
 
-resources: resources/linux/
-
 dev:
 	echo "deb http://emdebian.org/tools/debian/ jessie main" > /etc/apt/sources.list.d/embedian.list
 	curl http://emdebian.org/tools/debian/emdebian-toolchain-archive.key | apt-key add -
@@ -33,12 +31,12 @@ dev:
 overlay/etc/apt/trusted.gpg.d/ overlay/etc/tor/ overlay/etc/default/ overlay/usr/local/bin/ build/sd/:
 	mkdir -p $@
 
-build/u-boot-sunxi_$(UBOOT_VERSION)_armhf.deb:
-	cd build && apt-get download u-boot-sunxi=$(UBOOT_VERSION)
-build/u-boot/usr/lib/u-boot/A20-OLinuXino-Lime/u-boot-sunxi-with-spl.bin: build/u-boot-sunxi_$(UBOOT_VERSION)_armhf.deb
+build/u-boot-sunxi_$(UBOOT_DEBIAN_VERSION)_armhf.deb:
+	cd build && apt-get download u-boot-sunxi=$(UBOOT_DEBIAN_VERSION)
+build/u-boot/usr/lib/u-boot/A20-OLinuXino-Lime/u-boot-sunxi-with-spl.bin: build/u-boot-sunxi_$(UBOOT_DEBIAN_VERSION)_armhf.deb
 	dpkg -x $< build/u-boot
 uboot: build/u-boot/usr/lib/u-boot/A20-OLinuXino-Lime/u-boot-sunxi-with-spl.bin
-uboot_flash: build/u-boot/usr/lib/u-boot/A20-OLinuXino-Lime/u-boot-sunxi-with-spl.bin | build/sd/
+uboot_flash: build/u-boot/usr/lib/u-boot/A20-OLinuXino-Lime/u-boot-sunxi-with-spl.bin
 	pv $< | dd of=$(SDCARD_DEV) bs=1K seek=8
 	sync
 
@@ -50,18 +48,24 @@ build/linux/: | resources/linux/
 build/linux/.config: resources/config | build/linux/
 	#$(MAKE) $(MAKE_OPTIONS) -C build/linux sunxi_defconfig
 	cp $< $@
-build/linux/arch/arm/boot/zImage: build/linux/.config
+build/linux/arch/arm/boot/zImage build/linux/System.map: build/linux/.config
 	$(MAKE) $(MAKE_OPTIONS) -C build/linux zImage modules
 	rm -rf build/linux/output
 	INSTALL_MOD_PATH=output LOCALVERSION= $(MAKE) $(MAKE_OPTIONS) -C build/linux modules_install
 build/linux/arch/arm/boot/dts/sun7i-a20-olinuxino-lime.dtb: build/linux/.config
 	$(MAKE) $(MAKE_OPTIONS) -C build/linux dtbs
-linux: build/linux/arch/arm/boot/zImage
+linux: build/linux/arch/arm/boot/zImage build/linux/System.map build/linux/arch/arm/boot/dts/sun7i-a20-olinuxino-lime.dtb
 linux_flash: linux
 	mount $(SDCARD_DEV)1 build/sd
 	cp build/linux/arch/arm/boot/zImage build/sd/boot/vmlinuz-$(LINUX_VERSION)
+	cp build/linux/System.map build/sd/boot/System.map-$(LINUX_VERSION)
+	cp build/linux/arch/arm/boot/dts/sun7i-a20-olinuxino-lime.dtb build/sd/boot/dtb-$(LINUX_VERSION)
+	cp build/linux/.config build/sd/boot/config-$(LINUX_VERSION)
 	rsync -ahxP --delete build/linux/output/lib/modules/$(LINUX_VERSION)/ build/sd/lib/modules/$(LINUX_VERSION)
 	[ -d build/linux/output/lib/firmware ] && rsync -ahxP --delete build/linux/output/lib/firmware build/sd/lib/ || true
+	[ -x build/sd/usr/bin/qemu-arm-static ] || cp /usr/bin/qemu-arm-static build/sd/usr/bin/qemu-arm-static
+	chroot build/sd update-initramfs -utk $(LINUX_VERSION)
+	rm -f build/sd/usr/bin/qemu-arm-static
 	umount build/sd
 xconfig:
 	$(MAKE) -C build/linux xconfig
@@ -107,11 +111,9 @@ build/rootfs/boot/vmlinuz-$(LINUX_VERSION): build/linux/arch/arm/boot/zImage | b
 	rsync -ahxP --delete build/linux/output/lib/modules/$(LINUX_VERSION)/ build/rootfs/lib/modules/$(LINUX_VERSION)/
 	[ -d build/linux/output/lib/firmware ] && rsync -ahxP --delete build/linux/output/lib/firmware build/rootfs/lib/ || true
 build/rootfs/boot/initrd.img-$(LINUX_VERSION): build/rootfs/boot/vmlinuz-$(LINUX_VERSION) build/rootfs/boot/System.map-$(LINUX_VERSION) build/rootfs/boot/config-$(LINUX_VERSION)
-	for i in proc dev dev/pts sys; do mount -o bind /$$i build/rootfs/$$i; done
 	[ -x build/rootfs/usr/bin/qemu-arm-static ] || cp /usr/bin/qemu-arm-static build/rootfs/usr/bin/qemu-arm-static
 	chroot build/rootfs update-initramfs -utk $(LINUX_VERSION)
 	rm -f build/rootfs/usr/bin/qemu-arm-static
-	for i in proc dev/pts dev sys; do umount build/rootfs/$$i; done
 
 build/rootfs/boot/boot.scr: resources/boot.cmd | build/rootfs/
 	mkimage -A arm -O linux -T script -C none -d $< $@
@@ -148,7 +150,7 @@ rootfs_sync: | rootfs
 
 flash: uboot_flash rootfs_flash
 
-build/torbox.img: resources/script.bin uboot linux | rootfs build/sd/
+build/torbox.img: build/u-boot/usr/lib/u-boot/A20-OLinuXino-Lime/u-boot-sunxi-with-spl.bin | rootfs build/sd/
 	truncate -s $(IMG_SIZE) $@
 
 	$(eval DEVICE := $(shell losetup -f))
@@ -168,17 +170,17 @@ build/torbox.img: resources/script.bin uboot linux | rootfs build/sd/
 	sfill -zllf build/sd
 	umount build/sd
 
-	pv build/u-boot/u-boot-sunxi-with-spl.bin | dd of=$(DEVICE) bs=1K seek=8
+	pv build/u-boot/usr/lib/u-boot/A20-OLinuXino-Lime/u-boot-sunxi-with-spl.bin | dd of=$(DEVICE) bs=1K seek=8
 	sync
 
 	losetup -d $(DEVICE)
 img: build/torbox.img
-build/torbox.img.xz: build/torbox.img
-	pxz -k $<
-img_compress: build/torbox.img.xz
 img_flash: build/torbox.img
 	pv $< | dd of=$(SDCARD_DEV) bs=1M
 	sync
+build/torbox.img.xz: build/torbox.img
+	pxz -k $<
+img_compress: build/torbox.img.xz
 
 format:
 	/sbin/parted -a optimal --script $(SDCARD_DEV) \
