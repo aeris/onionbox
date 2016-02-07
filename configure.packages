@@ -1,11 +1,44 @@
 # Base
+udev
+netbase
+net-tools
+rsyslog
+logrotate
+anacron
+locales
+vim
+less
+kmod
+htop
+fake-hwclock
+rsync
+libpam-systemd
+usbutils
+#u-boot-tools
+#flash-kernel
+initramfs-tools
 //Python refuse to install with debootstrap
 //See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=769106#83
 python
+#linux-image-armmp/jessie-backports
+
+# Network
+ifupdown
+iproute
+## Firewall
+iptables
+ipset
+## DHCP
+isc-dhcp-client
+isc-dhcp-server
+
+# Wifi
+wireless-tools
+hostapd
+firmware-realtek
 
 # Tor
 tor
-tor-arm
 tor-geoipdb
 apt-transport-tor
 deb.torproject.org-keyring
@@ -13,3 +46,14 @@ deb.torproject.org-keyring
 python-stem
 ## Set date
 python-pyinotify
+## Arm
+tor-arm
+man-db
+# HTP
+curl
+ca-certificates
+libdatetime-format-dateparse-perl
+libgetopt-long-descriptive-perl
+
+# Services
+openssh-server

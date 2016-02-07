@@ -21,11 +21,11 @@ with open(consensus_file, 'rb') as consensus_file:
 		flags = set(node.flags)
 		if node.or_port:
 			entry = (node.address, node.or_port)
-			print('Find OR node :\t\t %s:%d' % entry)
+			#print('Find OR node :\t\t %s:%d' % entry)
 			entries.add(entry)
 		if node.dir_port:
 			entry = (node.address, node.dir_port)
-			print('Find directory node :\t %s:%d' % entry)
+			#print('Find directory node :\t %s:%d' % entry)
 			entries.add(entry)
 	entries = sorted(entries)
 
@@ -37,13 +37,14 @@ with open(entries_file, 'w') as entries_file:
 	entries_file.write('ipset create tor hash:ip,port -exist\n')
 	entries_file.write('ipset create tor-new hash:ip,port\n')
 	percentage = i = 0
+	entries_file.write('echo "Loading Tor IPSet... [0%]"\n')
 	for entry in entries:
 		entries_file.write('ipset add tor-new %s,%d\n' % entry)
 		p = int(math.floor(float(i) / count * 100))
-		if p - percentage >= 10:
+		if p - percentage >= 5:
 			percentage = p
 			entries_file.write('echo "Loading Tor IPSet... [%d%%]"\n' % (percentage))
 		i += 1
-		entries_file.write('echo "Loading Tor IPSet... [100%]"\n')
+	entries_file.write('echo "Loading Tor IPSet... [100%]"\n')
 	entries_file.write('ipset swap tor-new tor\n')
 	entries_file.write('ipset destroy tor-new\n')

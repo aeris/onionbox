@@ -102,5 +102,5 @@ try:
 finally:
 	notifier.stop()
 
-subprocess.check_call([IPSET])
 subprocess.check_call([HTPDATE])
+subprocess.check_call([IPSET])

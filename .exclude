@@ -1,8 +1,16 @@
 build/
 resources/u-boot/
 resources/linux/
-resources/a20_olimex_defconfig
+resources/linux-sunxi/
+resources/linux-stable/
 resources/script.bin
 resources/SPI.patch
 resources/spi-sun7i.c
 resources/tor-browser-user-agent
+resources/*.dmg
+resources/*.sig
+resources/*.asc
+resources/*.exe
+resources/*.tar.xz
+resources/*.pdf
+resources/*.iso

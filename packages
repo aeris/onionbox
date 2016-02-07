@@ -1,38 +1,4 @@
 # Base
 dialog
-udev
 apt-utils
-netbase
-net-tools
-rsyslog
-logrotate
-anacron
-locales
-vim
-less
-kmod
-htop
-fake-hwclock
-rsync
-libpam-systemd
-ca-certificates
-
-# Network
-ifupdown
-iproute
-## Firewall
-iptables
-ipset
-## DHCP
-isc-dhcp-client
-isc-dhcp-server
-
-# Wifi
-wireless-tools
-hostapd
-
-# Tor
-## Arm
-man-db
-# Services
-openssh-server
+localepurge

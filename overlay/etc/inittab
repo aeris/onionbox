@@ -22,10 +22,10 @@ si::sysinit:/etc/init.d/rcS
 l0:0:wait:/etc/init.d/rc 0
 l1:1:wait:/etc/init.d/rc 1
 l2:2:wait:/etc/init.d/rc 2
-l3:3:wait:/etc/init.d/rc 3
-l4:4:wait:/etc/init.d/rc 4
-l5:5:wait:/etc/init.d/rc 5
-l6:6:wait:/etc/init.d/rc 6
+#l3:3:wait:/etc/init.d/rc 3
+#l4:4:wait:/etc/init.d/rc 4
+#l5:5:wait:/etc/init.d/rc 5
+#l6:6:wait:/etc/init.d/rc 6
 # Normally not reached, but fallthrough in case of emergency.
 z6:6:respawn:/sbin/sulogin
 
@@ -51,7 +51,7 @@ po::powerokwait:/etc/init.d/powerfail stop
 # Note that on most Debian systems tty7 is used by the X Window System,
 # so if you want to add more getty's go ahead but skip tty7 if you run X.
 #
-1:2345:respawn:/sbin/getty 38400 tty1
+1:2345:respawn:/sbin/getty --noclear 38400 tty1
 2:23:respawn:/sbin/getty 38400 tty2
 3:23:respawn:/sbin/getty 38400 tty3
 4:23:respawn:/sbin/getty 38400 tty4
@@ -69,3 +69,4 @@ po::powerokwait:/etc/init.d/powerfail stop
 
 #T0:2345:respawn:/sbin/getty -L ttyS0 115200 linux
 #T0:2345:respawn:/sbin/getty -L -a root ttyS0 115200 linux
+T0:2345:respawn:/sbin/getty -L ttyS0 115200 vt100

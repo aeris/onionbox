@@ -18,6 +18,7 @@ sed -i s/tor+// /etc/apt/sources.list.d/*.list
 apt update
 apt dist-upgrade -y
 egrep -v '^(#|//|$$)' /tmp/packages | xargs apt install -y
+flash-kernel --machine "Olimex A20-OLinuXino-LIME"
 
 find /var/cache/apt/archives -type f -name "*.deb" -delete
 rm -f /etc/apt/apt.conf.d/{00proxy,00dpkg}
