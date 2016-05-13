@@ -21,6 +21,8 @@ initramfs-tools
 //See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=769106#83
 python
 #linux-image-armmp/jessie-backports
+//For wifi firmware
+firmware-misc-nonfree
 
 # Network
 ifupdown
@@ -54,6 +56,7 @@ curl
 ca-certificates
 libdatetime-format-dateparse-perl
 libgetopt-long-descriptive-perl
+libipc-system-simple-perl
 
 # Services
 openssh-server

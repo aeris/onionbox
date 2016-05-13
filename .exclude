@@ -1,12 +1,5 @@
 build/
-resources/u-boot/
 resources/linux/
-resources/linux-sunxi/
-resources/linux-stable/
-resources/script.bin
-resources/SPI.patch
-resources/spi-sun7i.c
-resources/tor-browser-user-agent
 resources/*.dmg
 resources/*.sig
 resources/*.asc

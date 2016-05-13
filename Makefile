@@ -21,11 +21,20 @@ desync: sync
 	rsync -ahxP --delete torbox-dev.local:torbox/ .
 
 dev:
+	echo "APT::Install-Recommends \"0\";\nAPT::Install-Suggests \"0\";" > /etc/apt/apt.conf.d/60recommends
+	apt install -y apt-cacher-ng
+	echo 'Acquire::http { Proxy "http://localhost:3142"; }' > /etc/apt/apt.conf.d/00proxy
+
+	apt install -y build-essential libncurses5-dev u-boot-tools device-tree-compiler build-essential git dosfstools aria2 wget qemu-user-static debootstrap binfmt-support rsync ccache curl apt-cacher-ng parted secure-delete pv tor python-stem pxz
+
 	echo "deb http://emdebian.org/tools/debian/ jessie main" > /etc/apt/sources.list.d/embedian.list
 	curl http://emdebian.org/tools/debian/emdebian-toolchain-archive.key | apt-key add -
 	dpkg --add-architecture armhf
 	apt update
-	apt install build-essential crossbuild-essential-armhf ncurses-dev u-boot-tools device-tree-compiler build-essential git dosfstools aria2 wget qemu-user-static debootstrap binfmt-support rsync ccache apt-cacher-ng parted secure-delete pv tor python-stem -y
+	apt install -y crossbuild-essential-armhf
+
+	mkdir -p ~/.gnupg
+	echo "keyserver hkp://pool.sks-keyservers.net" > ~/.gnupg/gpg.conf
 	gpg2 --recv-key 0xEE8CBC9E886DDD89
 
 overlay/etc/apt/trusted.gpg.d/ overlay/etc/tor/ overlay/etc/default/ overlay/usr/local/bin/ build/sd/:
@@ -33,8 +42,8 @@ overlay/etc/apt/trusted.gpg.d/ overlay/etc/tor/ overlay/etc/default/ overlay/usr
 
 build/u-boot-sunxi_$(UBOOT_DEBIAN_VERSION)_armhf.deb:
 	cd build && apt-get download u-boot-sunxi=$(UBOOT_DEBIAN_VERSION)
-build/u-boot/usr/lib/u-boot/A20-OLinuXino-Lime/u-boot-sunxi-with-spl.bin: build/u-boot-sunxi_$(UBOOT_DEBIAN_VERSION)_armhf.deb
-	dpkg -x $< build/u-boot
+build/u-boot/usr/lib/u-boot/A20-OLinuXino-Lime/u-boot-sunxi-with-spl.bin: | build/u-boot-sunxi_$(UBOOT_DEBIAN_VERSION)_armhf.deb
+	dpkg -x build/u-boot-sunxi_$(UBOOT_DEBIAN_VERSION)_armhf.deb build/u-boot
 uboot: build/u-boot/usr/lib/u-boot/A20-OLinuXino-Lime/u-boot-sunxi-with-spl.bin
 uboot_flash: build/u-boot/usr/lib/u-boot/A20-OLinuXino-Lime/u-boot-sunxi-with-spl.bin
 	pv $< | dd of=$(SDCARD_DEV) bs=1K seek=8
@@ -140,7 +149,9 @@ vmlinuz: build/rootfs/boot/vmlinuz
 initrd: build/rootfs/boot/initrd.img
 system.map: build/rootfs/boot/System.map
 config: build/rootfs/boot/config
-rootfs: overlay scr dtb vmlinuz initrd system.map config
+modules: linux
+	rsync -ahxP --delete build/linux/output/lib/modules/$(LINUX_VERSION)/ build/rootfs/lib/modules/$(LINUX_VERSION)/
+rootfs: overlay scr dtb vmlinuz initrd system.map config modules
 rootfs_flash: rootfs | build/sd/
 	mount $(SDCARD_DEV)1 build/sd
 	rsync -ahxAHPX --numeric-ids --delete build/rootfs/ build/sd/
@@ -179,7 +190,7 @@ img_flash: build/torbox.img
 	pv $< | dd of=$(SDCARD_DEV) bs=1M
 	sync
 build/torbox.img.xz: build/torbox.img
-	pxz -k $<
+	pxz -9 -kv -T8 $<
 img_compress: build/torbox.img.xz
 
 format:
@@ -212,4 +223,4 @@ clean:
 	rm -rf build/rootfs/ build/torbox.img build/torbox.img.xz \ overlay/etc/apt/trusted.gpg.d/deb.torproject.org.gpg \
 	overlay/etc/default/htpdate.pools overlay/usr/local/bin/htpdate
 mr-proper: clean
-	rm -rf build/*
+	rm -rf build/* resources/linux/
