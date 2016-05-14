@@ -7,3 +7,4 @@ resources/*.exe
 resources/*.tar.xz
 resources/*.pdf
 resources/*.iso
+overlay/etc/default/htpdate.pools

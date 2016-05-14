@@ -29,7 +29,7 @@ The provided Makefile assume you have your SD card available under `/dev/sdd`. [
 You can flash your SD card with `dd if=torbox.img of=/dev/sdd` (or with `make img_flash` if on the dev machine).
 If you want to use the compressed image without uncompressed it on disk, use `unxz -c torbox.img.xz | dd of=/dev/sdd`.
 
-For development, because flashing 4GB on a SD card is slow and tedious, you can format your SD card with `make format` and then sync it content with `make rootfs_flash` after a new build (or even `make rootfs_sync` if the Torbox is joinable from the development machine, avoiding the SD card switch).
+For development, because flashing 4GB on a SD card is slow and tedious, you can format your SD card with `make format` and then sync it content with `make flash` after a new build (or even `make rootfs_sync` if the Torbox is joinable from the development machine, avoiding the SD card switch).
 
 # Usage
 

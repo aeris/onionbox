@@ -1,0 +1,4 @@
+auto wlan0
+iface wlan0 inet static
+	address 10.0.1.1/24
+	hostapd /etc/hostapd/wlan0.conf

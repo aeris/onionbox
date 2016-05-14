@@ -25,7 +25,7 @@ dev:
 	apt install -y apt-cacher-ng
 	echo 'Acquire::http { Proxy "http://localhost:3142"; }' > /etc/apt/apt.conf.d/00proxy
 
-	apt install -y build-essential libncurses5-dev u-boot-tools device-tree-compiler build-essential git dosfstools aria2 wget qemu-user-static debootstrap binfmt-support rsync ccache curl apt-cacher-ng parted secure-delete pv tor python-stem pxz
+	apt install -y build-essential pkg-config libqt4-dev libncurses5-dev u-boot-tools device-tree-compiler build-essential git dosfstools aria2 wget qemu-user-static debootstrap binfmt-support rsync ccache curl apt-cacher-ng parted secure-delete pv tor python-stem pxz
 
 	echo "deb http://emdebian.org/tools/debian/ jessie main" > /etc/apt/sources.list.d/embedian.list
 	curl http://emdebian.org/tools/debian/emdebian-toolchain-archive.key | apt-key add -
@@ -157,7 +157,7 @@ rootfs_flash: rootfs | build/sd/
 	rsync -ahxAHPX --numeric-ids --delete build/rootfs/ build/sd/
 	umount build/sd
 rootfs_sync: | rootfs
-	rsync -ahxP --numeric-ids --delete --exclude dev --exclude sys --exclude proc build/rootfs/ torbox:/
+	rsync -ahxP --numeric-ids --delete --exclude dev --exclude sys --exclude proc --exclude /var/log --exclude /tmp --exclude /var/tmp --exclude /run build/rootfs/ torbox:/
 
 flash: uboot_flash rootfs_flash
 

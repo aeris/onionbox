@@ -21,8 +21,6 @@ initramfs-tools
 //See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=769106#83
 python
 #linux-image-armmp/jessie-backports
-//For wifi firmware
-firmware-misc-nonfree
 
 # Network
 ifupdown
@@ -36,7 +34,11 @@ isc-dhcp-server
 
 # Wifi
 wireless-tools
+iw
+rfkill
 hostapd
+firmware-linux
+firmware-linux-nonfree
 firmware-realtek
 
 # Tor

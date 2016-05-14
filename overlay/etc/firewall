@@ -1,10 +1,19 @@
-fw4 -A INPUT -i usb0 -p tcp --syn --dport 2222 -j ACCEPT # SSH
-fw4 -A INPUT -i usb0 -p udp --sport bootpc --dport bootps -j ACCEPT # DHCP
+fw -A INPUT -i usb0 -p tcp --syn --dport 2222 -j ACCEPT # SSH
+
+fw4 -A INPUT -i usb0 -p udp --sport bootpc --dport bootps -j ACCEPT # Admin DHCP
+fw4 -A INPUT -i wlan0 -p udp --sport bootpc --dport bootps -j ACCEPT # Wifi DHCP
 
 # Tor
 ipset create tor hash:ip,port -exist
 #fw4 -A INPUT -i eth0 -p tcp -m set --match-set tor src,src -j ACCEPT
 fw4 -A OUTPUT -o eth0 -p tcp --syn -m set --match-set tor dst,dst -j ACCEPT
 
-fw4 -A INPUT  -i lo -p tcp --syn --dport 9050 -j ACCEPT
-fw4 -A OUTPUT -o lo -p tcp --syn --dport 9050 -j ACCEPT
+# Transparent Tor proxy
+fw -t nat -A PREROUTING -i wlan0 -p udp --dport domain -j REDIRECT --to-ports 9053
+fw -t nat -A PREROUTING -i wlan0 -p tcp --syn -j REDIRECT --to-ports 9052
+fw -A INPUT -i wlan0 -p udp -d 10.0.1.1 --dport 9053 -j ACCEPT
+fw -A INPUT -i wlan0 -p tcp -d 10.0.1.1 --syn --dport 9052 -j ACCEPT
+
+# Tor SOCKS5
+fw -A INPUT  -i lo -p tcp --syn --dport 9050 -j ACCEPT
+fw -A OUTPUT -o lo -p tcp --syn --dport 9050 -j ACCEPT
